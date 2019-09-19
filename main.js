@@ -17,8 +17,8 @@ class AbstractStore { //класс каk кпример полиморфизма
     }
 }
 
-class StoreJS extends AbstractStore{
-    constructor(){
+class StoreJS extends AbstractStore {
+    constructor() {
         super();
         this._headers = {
             'Accept': 'application/json',
@@ -26,7 +26,8 @@ class StoreJS extends AbstractStore{
             'Access-Control-Allow-Method': 'GET, POST, PUT, DELETE, PATCH'
         }
     }
-    async saveTask(task){
+
+    async saveTask(task) {
         const response = await fetch(
             `http://localhost:3000/tasks`,
             {
@@ -38,13 +39,13 @@ class StoreJS extends AbstractStore{
         return Task.fromJSON(JSON.stringify(taskProto));
     }
 
-    async deleteTask(task){
+    async deleteTask(task) {
         const response = await fetch(`http://localhost:3000/tasks/${task.id}`,
             {
                 headers: this._headers,
                 method: 'DELETE'
             }
-            );
+        );
         return await response.json();
     }
 
@@ -71,7 +72,6 @@ class StoreJS extends AbstractStore{
         return await response.json();
     }
 
-
 }
 
 //хранение таска между сессиями
@@ -80,62 +80,65 @@ class StoreLS extends AbstractStore {
         super();
         this._prefix = 'strLS';
     }
+
     getTask(id) {
 
         const key = `${this._prefix}${id}`;
         const taskJson = localStorage.getItem(key);
 
 
-            if (!taskJson) {
-                throw new Error(`there is no task with id= ${id}`);
-            }
-            let tasks = null;
-            try {
-                tasks = Task.fromJSON(taskJson);
-            } catch (e) {
-                throw new Error(`impossible get task with id=${id}`, error.message);
-            }
-            return Promise.resolve(tasks);
+        if (!taskJson) {
+            throw new Error(`there is no task with id= ${id}`);
+        }
+        let tasks = null;
+        try {
+            tasks = Task.fromJSON(taskJson);
+        } catch (e) {
+            throw new Error(`impossible get task with id=${id}`, error.message);
+        }
+        return Promise.resolve(tasks);
 
     }
 
     getTasks() {
         const tasks = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
 
-                if (key.includes(this._prefix)) {
-                    let task = null;
-                    try {
-                        task = Task.fromJSON(localStorage.getItem(key));
-                    } catch (e) {
-                        throw new Error(`impossible get task with id=${id}`, error.message);
-                    }
-                    tasks.push(task);
+            if (key.includes(this._prefix)) {
+                let task = null;
+                try {
+                    task = Task.fromJSON(localStorage.getItem(key));
+                } catch (e) {
+                    throw new Error(`impossible get task with id=${id}`, error.message);
                 }
+                tasks.push(task);
             }
-            return Promise.resolve(tasks);
+        }
+        return Promise.resolve(tasks);
 
     }
+
     //сохраним таск в LocalStorage
     saveTask(task) {
         const key = `${this._prefix}${task.id}`;
         const json = Task.toJSON(task);
 
-            localStorage.setItem(key, json);
+        localStorage.setItem(key, json);
 
-            let tasks = null;
-            try {
-                tasks = Task.fromJSON(localStorage.getItem(key));;
-            } catch (e) {
-                throw new Error(`impossible get task with id=${id}`, error.message);
-            }
+        let tasks = null;
+        try {
+            tasks = Task.fromJSON(localStorage.getItem(key));
+            ;
+        } catch (e) {
+            throw new Error(`impossible get task with id=${id}`, error.message);
+        }
 
-            return Promise.resolve(tasks);
+        return Promise.resolve(tasks);
 
     }
 
-    deleteTask(task){
+    deleteTask(task) {
         const currentTask = this.getTask(task.id);
         localStorage.removeItem(`${this.prefix}${currentTask.id}`);
         return Promise.resolve({});
@@ -162,7 +165,6 @@ class Store extends AbstractStore {
         return Promise.resolve(task.copy());
     }
 
-
     saveTask(task) {
         this._storage.push(task);
         return Promise.resolve(task.copy());
@@ -185,6 +187,7 @@ class Store extends AbstractStore {
     }
 
 }
+
 class Render {
     renderTask(task) {
         console.log(task);
@@ -265,6 +268,7 @@ class TaskManager {
         }
         this._store = store;
     }
+
     getTasks() {
         return this._store.getTasks();
     }
@@ -285,6 +289,7 @@ class TaskManager {
     }
 
 }
+
 class TODO {
     constructor(taskManager, render) {
         this._taskManager = taskManager;
@@ -292,7 +297,7 @@ class TODO {
     }
 
     async init() {
-        const  tasks = await this._taskManager.getTasks();
+        const tasks = await this._taskManager.getTasks();
         tasks.forEach(task => {
             this._render.renderTask(task);
         });
@@ -309,9 +314,10 @@ class TODO {
             this._render.renderTask(await this._taskManager.deleteTask(tasks))
         });
     }
+
     async toggleAllTask() {
         const tasks = await this._taskManager.getTasks();
-        tasks.forEach(tasks =>{
+        tasks.forEach(tasks => {
             this._taskManager.toggleTask(tasks)
                 .then(tasks => this._render.renderTask(tasks));
         })
@@ -337,12 +343,12 @@ class TODOApp {
         });
 
         deleteAllTasksBtnRef.addEventListener('click', () => {
-            debugger;
+        debugger;
             todo.deleteAllTask();
         });
 
         toggleAllTaskBtnHref.addEventListener('click', () => {
-            debugger;
+        debugger;
             todo.toggleAllTask();
         });
 
@@ -352,8 +358,3 @@ class TODOApp {
 
 const app = new TODOApp();
 app.execute();
-
-
-
-
-
