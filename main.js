@@ -1,6 +1,5 @@
-//абстрактный класс над Store & StoreLS ктр будет регулировать поведение над обоими классами
+//абстрактный класс над Store & StoreLS ктр будет регулировать поведение над  классами Store
 class AbstractStore { //класс каk кпример полиморфизма
-    //нужно чтобы в каждом из сторов был getTasks & saveTask
     getTask(id) {
         throw new Error('not implemented');
     }
@@ -12,7 +11,69 @@ class AbstractStore { //класс каk кпример полиморфизма
     saveTask(task) {
         throw new Error('not implemented');
     }
+
+    updateTask(task) {
+        throw new Error('not implemented');
+    }
 }
+
+class StoreJS extends AbstractStore{
+    constructor(){
+        super();
+        this._headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Method': 'GET, POST, PUT, DELETE, PATCH'
+        }
+    }
+    async saveTask(task){
+        const response = await fetch(
+            `http://localhost:3000/tasks`,
+            {
+                headers: this._headers,
+                method: 'POST',
+                body: Task.toJSON(task)
+            });
+        const taskProto = await response.json();
+        return Task.fromJSON(JSON.stringify(taskProto));
+    }
+
+    async deleteTask(task){
+        const response = await fetch(`http://localhost:3000/tasks/${task.id}`,
+            {
+                headers: this._headers,
+                method: 'DELETE'
+            }
+            );
+        return await response.json();
+    }
+
+    async getTasks() {
+        const response = await fetch('http://localhost:3000/tasks');
+        const tasks = [];
+        let arrOfTasks = await response.json();
+
+        arrOfTasks.forEach(taskProto => {
+            tasks.push(Task.fromJSON(JSON.stringify(taskProto)))
+        });
+
+        return Promise.resolve(tasks);
+    }
+
+    async updateTask(task) {
+        const response = await fetch(`http://localhost:3000/tasks/${task.id}`,
+            {
+                headers: this._headers,
+                method: 'PUT',
+                body: Task.toJSON(task)
+            }
+        );
+        return await response.json();
+    }
+
+
+}
+
 //хранение таска между сессиями
 class StoreLS extends AbstractStore {
     constructor() {
@@ -75,27 +136,15 @@ class StoreLS extends AbstractStore {
     }
 
     deleteTask(task){
-        localStorage.removeItem(`${this.prefix}${task.id}`);
-        return Promise.resolve(`Task with title: '${task.title}' was deleted`);
+        const currentTask = this.getTask(task.id);
+        localStorage.removeItem(`${this.prefix}${currentTask.id}`);
+        return Promise.resolve({});
     }
 
-    async updateTask(newTask) {
-        await this.removeTask(await this.getTask(newTask.id))
-        return Promise.resolve(await this.saveTask(newTask))
-    }
-   /* deleteTask(task) {
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.includes(this._prefix)) {
-                return localStorage.removeItem(key);
-            }
-        }
-    }
-
-    updateTask(task) {
-        this.deleteTask(task);
+    async updateTask(task) {
+        await this.deleteTask(task);
         return this.saveTask(task);
-    }*/
+    }
 }
 
 class Store extends AbstractStore {
@@ -120,12 +169,12 @@ class Store extends AbstractStore {
     }
 
     getTasks() {
-        return Promise.resolve(this._storage.map(task => task.copy()));
+        return Promise.all(this._storage.map(task => this.getTask(task.id)));
     }
 
     deleteTask(task) {
         const currentTask = this.getTask(task.id);
-        this._storage = this._storage.filter(data => data.id !== task.id);
+        this._storage = this._storage.filter(data => data.id !== currentTask.id);
 
         return Promise.resolve({});
     }
@@ -243,13 +292,10 @@ class TODO {
     }
 
     async init() {
-
         const  tasks = await this._taskManager.getTasks();
         tasks.forEach(task => {
             this._render.renderTask(task);
         });
-
-
     }
 
     async addTask(title) {
@@ -259,8 +305,8 @@ class TODO {
 
     async deleteAllTask() {
         const tasks = await this._taskManager.getTasks();
-        tasks.forEach(tasks => {
-            this._render.renderTask(this._taskManager.deleteTask(tasks))
+        tasks.forEach(async tasks => {
+            this._render.renderTask(await this._taskManager.deleteTask(tasks))
         });
     }
     async toggleAllTask() {
@@ -269,20 +315,12 @@ class TODO {
             this._taskManager.toggleTask(tasks)
                 .then(tasks => this._render.renderTask(tasks));
         })
-        /*tasks.forEach(task => {
-            this._taskManager.toggleTask(task)
-            this._render.renderTask(currentTask);
-        });*/
-        /*tasks.forEach(async (task) => {
-            const currentTask = await this._taskManager.toggleTask(task);
-            this._render.renderTask(currentTask);
-        })*/
     }
 }
 
 class TODOApp {
     execute() {
-        const store = new Store();
+        const store = new StoreJS();
         const render = new Render();
 
         const taskManager = new TaskManager(store);
@@ -291,18 +329,12 @@ class TODOApp {
 
         const titleInputRef = document.getElementById('title-input');
         const createTaskBtnRef = document.getElementById('create-btn');
-        const debugBtnRef = document.getElementById('debug-btn');
         const deleteAllTasksBtnRef = document.getElementById('delete-btn');
-        // const deleteTaskBtnRef = document.getElementById('delete-btn');
         const toggleAllTaskBtnHref = document.getElementById('toggle-btn');
 
         createTaskBtnRef.addEventListener('click', () => {
             todo.addTask(titleInputRef.value);
         });
-
-        /* debugBtnRef.addEventListener('click', () => {
-             todo.init();
-         });*/
 
         deleteAllTasksBtnRef.addEventListener('click', () => {
             debugger;
@@ -314,7 +346,7 @@ class TODOApp {
             todo.toggleAllTask();
         });
 
-        todo.init();
+        //todo.init();
     }
 }
 
