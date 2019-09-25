@@ -391,6 +391,11 @@ class TODO {
         });
     }
 
+    async deleteTask(title) {
+        const task = await this._taskManager.deleteTask(title);
+        this._render.renderTask(task);
+    }
+
     async addTask(title) {
         const task = await this._taskManager.createTask(title);
         this._render.renderTask(task);
@@ -422,12 +427,10 @@ class TODOApp {
         const render = new RealRender(taskContainer);
 
         const todo = new TODO(taskManager, render);
-    
-        todo.deleteTaskFunction = todo.deleteAllTask.bind(todo);
-        render.deleteTaskFunction = todo.deleteTaskFunction;
-
-        todo.toggleTaskFunction = todo.toggleAllTask.bind(todo);
-        render.toggleTaskFunction = todo.toggleTaskFunction;
+            
+        //render.deleteTaskFunction = todo.deleteAllTask.bind(todo);
+        render.toggleTaskFunction = todo.toggleAllTask.bind(todo);
+        render.deleteTaskFunction = todo.deleteTaskFunction.bind(todo);
         
         const titleInputRef = document.getElementById('todo-input');
            
