@@ -1,5 +1,4 @@
-//абстрактный класс над Store & StoreLS ктр будет регулировать поведение над  классами Store
-class AbstractStore { //класс каk кпример полиморфизма
+class AbstractStore {                       //абстрактный класс над Store & StoreLS - регулирует поведение над  классами Store, StoreLS, StoreJS
     getTask(id) {
         throw new Error('not implemented');
     }
@@ -15,6 +14,96 @@ class AbstractStore { //класс каk кпример полиморфизма
     updateTask(task) {
         throw new Error('not implemented');
     }
+}
+
+class AbstractRender {
+    renderTask(task){
+        throw new Error('not implemented');
+    }
+
+    updateTask(task){
+        throw new Error('not implemented');
+    }
+
+    destroyTask(task){
+        throw new Error('not implemented');
+    }
+}
+
+class RealRender extends AbstractRender{
+    constructor(taskContainer, errorContainer) { 
+        super();
+        this.taskContainer = taskContainer;
+    }
+    set deleteTaskFunction(func) {
+        this._deleteTaskFunction = func;
+      }
+    
+    set toggleTaskFunction(func) {
+        this._toggleTaskFunction = func;
+      }
+    
+      renderTask(task) {
+
+        const li = document.createElement('li');
+        li.setAttribute('class', 'created-task--item');
+        this.taskContainer.append(li);
+
+        const div = document.createElement('div');
+        div.setAttribute('class', 'task');
+        li.append(div);
+
+        const p = document.createElement('p');
+        p.innerText = task.title;
+        p.setAttribute('id', task.id);
+        p.setAttribute('class', 'task--content_color task--content');
+        div.append(p);
+
+        const divBtnWrapp = document.createElement('div');
+        divBtnWrapp.setAttribute('class', 'task--action-btn-wrapper');
+        div.append(divBtnWrapp);
+
+        const btnPositive = document.createElement('button');
+        btnPositive.innerText = 'Toggle';
+        btnPositive.setAttribute('class', 'task--action-btn task--action-btn_positive');
+        divBtnWrapp.append(btnPositive);
+
+        const btnNegative = document.createElement('button');
+        btnNegative.innerText = 'Delete';
+        btnNegative.setAttribute('class', 'task--action-btn task--action-btn_negative delete-btn');
+        /*btnNegative.addEventListener('click', () =>{
+            debugger;
+            todo.deleteAllTask();
+        })*/
+        divBtnWrapp.append(btnNegative);
+        
+        /*
+        block.addEventListener('click', (event) => {
+          const target = event.target;
+    
+          if (true) {
+            this._deleteTaskFunction(task)
+          }
+    
+          if (false) {
+            this.toggleTaskFunction(task)
+          }
+        })*/
+       
+      }
+      updateTask(task) {
+        const div = taskContainer.querySelector(`#${task.id}`);
+        div.innerText = task.title;
+      }
+          
+      destroyTask(task) {
+        const div = this.taskContainer.querySelector(`#${task.id}`);
+        this.taskContainer.remove(div);
+      }
+    
+      renderError(error) {
+    
+      }
 }
 
 class StoreJS extends AbstractStore {
@@ -74,7 +163,6 @@ class StoreJS extends AbstractStore {
 
 }
 
-//хранение таска между сессиями
 class StoreLS extends AbstractStore {
     constructor() {
         super();
@@ -186,12 +274,6 @@ class Store extends AbstractStore {
         return this.saveTask(task);
     }
 
-}
-
-class Render {
-    renderTask(task) {
-        console.log(task);
-    }
 }
 
 class Task {
@@ -310,9 +392,13 @@ class TODO {
 
     async deleteAllTask() {
         const tasks = await this._taskManager.getTasks();
+        console.log(tasks);
+        this._render.destroyTask(tasks);
+        /*
+        const tasks = await this._taskManager.getTasks();
         tasks.forEach(async tasks => {
-            this._render.renderTask(await this._taskManager.deleteTask(tasks))
-        });
+            this._render.destroyTask(await this._taskManager.deleteTask(tasks));
+        });*/
     }
 
     async toggleAllTask() {
@@ -326,32 +412,37 @@ class TODO {
 
 class TODOApp {
     execute() {
-        const store = new StoreJS();
-        const render = new Render();
+        const store = new StoreLS();
+        
+        const taskContainer = document.getElementsByClassName('created-task--item-group')[0];
+        const render = new RealRender(taskContainer);
 
         const taskManager = new TaskManager(store);
 
         const todo = new TODO(taskManager, render);
-
-        const titleInputRef = document.getElementById('title-input');
-        const createTaskBtnRef = document.getElementById('create-btn');
-        const deleteAllTasksBtnRef = document.getElementById('delete-btn');
-        const toggleAllTaskBtnHref = document.getElementById('toggle-btn');
-
-        createTaskBtnRef.addEventListener('click', () => {
+        
+        const titleInputRef = document.getElementById('todo-input');
+        
+        /*
+        document.querySelector('#add-btn').addEventListener('click', () => {
+            debugger;
             todo.addTask(titleInputRef.value);
-        });
-
-        deleteAllTasksBtnRef.addEventListener('click', () => {
-        debugger;
-            todo.deleteAllTask();
-        });
-
-        toggleAllTaskBtnHref.addEventListener('click', () => {
-        debugger;
-            todo.toggleAllTask();
-        });
-
+        })*/
+        
+        const prom = new Promise(resolve => {
+            document.querySelector('#add-btn').addEventListener('click', () => {
+                debugger;
+                resolve(todo.addTask(titleInputRef.value));
+            })
+        })
+        prom
+            .then(() => {
+                document.querySelector('.delete-btn').addEventListener('click', () =>{
+                    debugger;
+                    todo.deleteAllTask();
+                })
+            });
+        
         //todo.init();
     }
 }

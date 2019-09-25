@@ -47,6 +47,7 @@ body {
     border: 1px rgb(41, 126, 79);
     border-radius: 2px;
     padding: 5px 10px;
+    margin-right: 5px;
 }
 .task--action-btn_negative{
     background-color: rgba(170, 33, 33, 0.87);
@@ -60,4 +61,5 @@ body {
 }
 .task--content{
     margin: 0;
+
 }
