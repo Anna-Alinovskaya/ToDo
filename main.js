@@ -21,34 +21,34 @@ class AbstractStore {                       //абстрактный класс 
 }
 
 class AbstractRender {
-    renderTask(task){
+    renderTask(task) {
         throw new Error('not implemented');
     }
 
-    updateTask(task){
+    updateTask(task) {
         throw new Error('not implemented');
     }
 
-    destroyTask(task){
+    destroyTask(task) {
         throw new Error('not implemented');
     }
 }
 
-class RealRender extends AbstractRender{
-    constructor(taskContainer, errorContainer) { 
+class RealRender extends AbstractRender {
+    constructor(taskContainer, errorContainer) {
         super();
         this.taskContainer = taskContainer;
         this.errorContainer = errorContainer;
     }
     set deleteTaskFunction(func) {
         this._deleteTaskFunction = func;
-      }
-    
+    }
+
     set toggleTaskFunction(func) {
         this._toggleTaskFunction = func;
-      }
-    
-      renderTask(task) {
+    }
+
+    renderTask(task) {
 
         const li = document.createElement('li');
         const div = document.createElement('div');
@@ -58,6 +58,7 @@ class RealRender extends AbstractRender{
         const btnNegative = document.createElement('button');
 
         li.setAttribute('class', 'created-task--item');
+        li.setAttribute('id', task.id);
         div.setAttribute('class', 'task');
         p.innerText = task.title;
         p.setAttribute('id', task.id);
@@ -67,17 +68,18 @@ class RealRender extends AbstractRender{
         btnPositive.setAttribute('class', 'task--action-btn task--action-btn_positive toggle-btn');
         btnNegative.innerText = 'Delete';
         btnNegative.setAttribute('class', 'task--action-btn task--action-btn_negative delete-btn');
-  
+
         li.addEventListener('click', (event) => {
             const target = event.target;
-      
+
             if (target.innerText === "Delete") {
-              debugger;
-              this._deleteTaskFunction(task);
+                debugger;
+                this._deleteTaskFunction(task);
             } else if (target.innerText === "Toggle") {
-              this._toggleTaskFunction(task);
+                debugger;
+                this._toggleTaskFunction(task);
             }
-          })
+        })
 
         this.taskContainer.append(li);
         li.append(div);
@@ -85,21 +87,21 @@ class RealRender extends AbstractRender{
         div.append(divBtnWrapp);
         divBtnWrapp.append(btnPositive);
         divBtnWrapp.append(btnNegative);
-            
-      }
-      updateTask(task) {
+
+    }
+    updateTask(task) {
         const div = taskContainer.querySelector(`#${task.id}`);
         div.innerText = task.title;
-      }
-          
-      destroyTask(task) {
+    }
+
+    destroyTask(task) {
         const div = this.taskContainer.querySelector(`#${task.id}`);
-        this.taskContainer.remove(div);
-      }
-    
-      renderError(error) {
-    
-      }
+        div.remove();
+    }
+
+    renderError(error) {
+
+    }
 }
 
 class StoreJS extends AbstractStore {
@@ -352,7 +354,7 @@ class TaskManager {
     }
 
     createTask(title) {
-        const id = Math.random().toString(36).substr(2, 16);
+        const id = 'id' + Math.random().toString(36).substr(2, 16);
         const task = new Task(id, title);
         return this._store.saveTask(task);
     }
@@ -391,9 +393,9 @@ class TODO {
         });
     }
 
-    async deleteTask(title) {
-        const task = await this._taskManager.deleteTask(title);
-        this._render.renderTask(task);
+    async deleteTask(task) {
+        // const task = await this._taskManager.deleteTask(task);
+        this._render.destroyTask(task);
     }
 
     async addTask(title) {
@@ -427,18 +429,17 @@ class TODOApp {
         const render = new RealRender(taskContainer);
 
         const todo = new TODO(taskManager, render);
-            
-        //render.deleteTaskFunction = todo.deleteAllTask.bind(todo);
+
+        render.deleteTaskFunction = todo.deleteTask.bind(todo);
         render.toggleTaskFunction = todo.toggleAllTask.bind(todo);
-        render.deleteTaskFunction = todo.deleteTaskFunction.bind(todo);
-        
+
         const titleInputRef = document.getElementById('todo-input');
-           
+
         document.querySelector('#add-btn').addEventListener('click', () => {
             debugger;
             todo.addTask(titleInputRef.value);
         });
-      
+
         //todo.init();
     }
 }
