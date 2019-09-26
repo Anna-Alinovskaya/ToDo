@@ -94,6 +94,7 @@ class RealRender extends AbstractRender {
     updateTask(task) {
         const div = this.taskContainer.querySelector(`#${task.id}`);
         div.style.textDecoration = 'line-through'; 
+        //div.innerText = task.title;
     }
 
     destroyTask(task) {
@@ -390,6 +391,7 @@ class TODO {
     }
 
     async deleteTask(task) {
+        await this._taskManager.deleteTask(task);
         this._render.destroyTask(task);
     }
 
@@ -408,7 +410,7 @@ class TODO {
 
 class TODOApp {
     execute() {
-        const store = new StoreLS();
+        const store = new Store();
 
         const taskManager = new TaskManager(store);
 
