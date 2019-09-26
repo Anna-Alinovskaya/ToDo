@@ -77,9 +77,8 @@ class RealRender extends AbstractRender {
                 this._deleteTaskFunction(task);
             } else if (target.innerText === "Toggle") {
                 debugger;
-                let id = task.id;
-                this._toggleTaskFunction(id);
-                
+                const id = task.id;
+                this._toggleTaskFunction(id);    
             }
         })
 
@@ -102,8 +101,11 @@ class RealRender extends AbstractRender {
         div.remove();
     }
 
+    removeError(title){
+        title.classList.remove('todo-app--input_error');
+    }
     renderError(error) {
-
+        error.setAttribute('class', 'todo-app--input_error todo-app--input todo-app--input_size');
     }
 }
 
@@ -415,18 +417,25 @@ class TODOApp {
         const taskManager = new TaskManager(store);
 
         const taskContainer = document.getElementsByClassName('created-task--item-group')[0];
-        const render = new RealRender(taskContainer);
+        const titleInputRef = document.getElementById('todo-input');
+        const errorContainer = titleInputRef;
+        const render = new RealRender(taskContainer, errorContainer);
 
         const todo = new TODO(taskManager, render);
 
         render.deleteTaskFunction = todo.deleteTask.bind(todo);
         render.toggleTaskFunction = todo.toggleTask.bind(todo);
 
-        const titleInputRef = document.getElementById('todo-input');
+       
 
         document.querySelector('#add-btn').addEventListener('click', () => {
             debugger;
-            todo.addTask(titleInputRef.value);
+            if(!titleInputRef.value){
+                render.renderError(errorContainer)
+            } else {
+                render.removeError(titleInputRef);
+                todo.addTask(titleInputRef.value);
+            }
         });
   }
 }

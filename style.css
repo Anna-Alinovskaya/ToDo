@@ -12,9 +12,9 @@ body {
     height: 100vh;
 }
 .todo-app{
-    width: 60%;
+    width: 50%;
     background-color:rgb(240, 255, 255);
-    margin: auto;
+    margin: 0 auto;
 }
 .todo-app--title{
     width: 95%;
@@ -24,7 +24,19 @@ body {
     font-size: 3em;
 } 
 .todo-app--input{
+    border-radius: 5px;
+    outline: none;
+}
+.todo-app--input_size{
     width: 90%;
+    height: 30px;
+}
+.todo-app--input_error{
+    background-color: #fff6f6;
+    border-color: #e0b4b4;
+    color: #9f3a38;
+    -webkit-box-shadow: none;
+    box-shadow: none;
 }
 .todo-app--create-task-wrapper,
 .task{
@@ -45,15 +57,15 @@ body {
 .task--action-btn_positive{
     background-color: rgba(30, 112, 48, 0.849);
     border: 1px rgb(41, 126, 79);
-    border-radius: 2px;
-    padding: 5px 10px;
+    border-radius: 5px;
+    padding: 8px 20px;
     margin-right: 5px;
 }
 .task--action-btn_negative{
     background-color: rgba(170, 33, 33, 0.87);
     border: 1px rgb(153, 37, 37);
-    border-radius: 2px;
-    padding: 5px 10px;
+    border-radius: 5px;
+    padding: 8px 20px;
 }
 .created-task--item-group{
     list-style: none;
