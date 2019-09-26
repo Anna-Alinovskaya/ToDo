@@ -77,7 +77,9 @@ class RealRender extends AbstractRender {
                 this._deleteTaskFunction(task);
             } else if (target.innerText === "Toggle") {
                 debugger;
-                this._toggleTaskFunction(task);
+                let id = task.id;
+                this._toggleTaskFunction(id);
+                
             }
         })
 
@@ -90,8 +92,8 @@ class RealRender extends AbstractRender {
 
     }
     updateTask(task) {
-        const div = taskContainer.querySelector(`#${task.id}`);
-        div.innerText = task.title;
+        const div = this.taskContainer.querySelector(`#${task.id}`);
+        div.style.textDecoration = 'line-through'; 
     }
 
     destroyTask(task) {
@@ -349,6 +351,10 @@ class TaskManager {
         this._store = store;
     }
 
+    getTask(id) {
+        return this._store.getTask(id);
+    }
+
     getTasks() {
         return this._store.getTasks();
     }
@@ -360,22 +366,12 @@ class TaskManager {
     }
 
     deleteTask(task) {
-        /*
-        document.querySelector('.toggle-btn').addEventListener('click', () =>{
-            render.destroyTask({ title: 'test 1', id: 'test0' });
-            })*/
         return this._store.deleteTask(task);
-
     }
 
     toggleTask(task) {
-        /*
-        document.querySelector('.toggle-btn').addEventListener('click', () =>{
-            render.updateTask({ title: 'test 1', id: 'test0' });
-            })
-        task.toggle();*/
+        task.toggle();
         return this._store.updateTask(task);
-
     }
 
 }
@@ -394,7 +390,6 @@ class TODO {
     }
 
     async deleteTask(task) {
-        // const task = await this._taskManager.deleteTask(task);
         this._render.destroyTask(task);
     }
 
@@ -403,25 +398,17 @@ class TODO {
         this._render.renderTask(task);
     }
 
-    async deleteAllTask() {
-        const tasks = await this._taskManager.getTasks();
-        tasks.forEach(async tasks => {
-            this._render.destroyTask(await this._taskManager.deleteTask(tasks));
-        });
+    async toggleTask(id) {
+        const task = await this._taskManager.getTask(id);
+        this._taskManager.toggleTask(task);
+        this._render.updateTask(task);
     }
 
-    async toggleAllTask() {
-        const tasks = await this._taskManager.getTasks();
-        tasks.forEach(tasks => {
-            this._taskManager.toggleTask(tasks)
-                .then(tasks => this._render.renderTask(tasks));
-        })
-    }
 }
 
 class TODOApp {
     execute() {
-        const store = new Store();
+        const store = new StoreLS();
 
         const taskManager = new TaskManager(store);
 
@@ -431,7 +418,7 @@ class TODOApp {
         const todo = new TODO(taskManager, render);
 
         render.deleteTaskFunction = todo.deleteTask.bind(todo);
-        render.toggleTaskFunction = todo.toggleAllTask.bind(todo);
+        render.toggleTaskFunction = todo.toggleTask.bind(todo);
 
         const titleInputRef = document.getElementById('todo-input');
 
@@ -439,7 +426,7 @@ class TODOApp {
             debugger;
             todo.addTask(titleInputRef.value);
         });
-    }
+  }
 }
 
 const app = new TODOApp();
