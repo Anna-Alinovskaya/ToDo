@@ -439,8 +439,6 @@ class TODOApp {
             debugger;
             todo.addTask(titleInputRef.value);
         });
-
-        //todo.init();
     }
 }
 
